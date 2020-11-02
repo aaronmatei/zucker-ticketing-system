@@ -58,6 +58,7 @@ const signUpUser = async (req: Request, res: Response, next: NextFunction) => {
                     });
                 })
                 .catch((err) => {
+                    console.log("ERROR IN SAVING USER", err)
                     return res.status(400).json({
                         message: "Could not save user",
                         error: err,
@@ -83,7 +84,7 @@ const signInUser = async (
         throw new BadRequestError("Email provided is not registered")
     }
 
-    const passwordsMatch = await Password.compare(existingUser.password, password)
+    const passwordsMatch = await Password.compare(password, existingUser.password)
     if (!passwordsMatch) {
         throw new BadRequestError("Wrong password. Please try again")
     }

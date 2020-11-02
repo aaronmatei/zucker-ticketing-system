@@ -1,3 +1,8 @@
 export default () => {
-    return <h1>About Us</h1>
-}
+    return (
+        <div className="container">
+            <h1>About us Page.... </h1>
+        </div>
+    );
+};
+
