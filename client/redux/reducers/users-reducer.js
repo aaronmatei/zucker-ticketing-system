@@ -81,7 +81,7 @@ const usersReducer = (state = initialState, action) => {
                     isRestricted: false,
                 },
                 loading: false,
-                success: true,
+                success: null,
                 successMessage: action.payload.message,
                 errors: [],
             };

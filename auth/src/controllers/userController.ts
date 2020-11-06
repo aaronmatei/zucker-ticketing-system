@@ -81,10 +81,13 @@ const signInUser = async (req: Request, res: Response, next: NextFunction) => {
     const { email, password } = req.body;
     await User.findOne({ email }).exec((err, foundUser) => {
         if (err) {
-            throw new BadRequestError("Error in getting user with that email");
+            throw new Error("Error in getting user with that email");
         }
         if (!foundUser) {
-            throw new BadRequestError("Email provided is not registered");
+            return res.status(400).json({
+                errors: [{ message: "Email provided is not registered" }]
+            });
+            // throw new Error("Email provided is not registered");
         }
         if (foundUser) {
 
@@ -93,8 +96,15 @@ const signInUser = async (req: Request, res: Response, next: NextFunction) => {
                 isMatch: boolean
             ) {
                 if (err) {
-
                     throw new Error("Error in comparing passwords.....");
+                }
+                if (!isMatch) {
+                    return res.status(400).json({
+                        errors: [{ message: "Ooops....Wrong password" }]
+
+                    });
+                    // throw new BadRequestError("Ooops....Wrong password");
+                    // throw new Error("Ooops....Wrong password");
                 }
 
                 generateSignINJWT(foundUser)
@@ -138,7 +148,7 @@ const signInUser = async (req: Request, res: Response, next: NextFunction) => {
             );
             return token;
         } catch (error) {
-            throw new BadRequestError("Error occured. Try again Later");
+            throw new Error("Error occured in generating sign in token");
         }
     }
 };
