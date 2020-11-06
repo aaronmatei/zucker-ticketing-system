@@ -13,7 +13,7 @@ export default ({ url, method, body, onSuccess }) => {
             const response = await axios[method](url, body);
             setValues({ ...values, success: true, errors: null });
             if (onSuccess) {
-                setTimeout(() => onSuccess(response.data), 4500);
+                setTimeout(() => onSuccess(response.data), 2000);
             }
             return response.data;
         } catch (error) {

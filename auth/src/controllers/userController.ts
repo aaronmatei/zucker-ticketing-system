@@ -4,16 +4,10 @@ import { BadRequestError } from "../errors/bad-request-error";
 import { Password } from "./../services/password";
 import jwt from "jsonwebtoken";
 
-
-const currentUser = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
+const currentUser = async (req: Request, res: Response, next: NextFunction) => {
     res.status(200).json({
-        loggedInUser: req.currentUser
-    })
-
+        loggedInUser: req.currentUser,
+    });
 };
 
 const signUpUser = async (req: Request, res: Response, next: NextFunction) => {
@@ -58,10 +52,10 @@ const signUpUser = async (req: Request, res: Response, next: NextFunction) => {
                     });
                 })
                 .catch((err) => {
-                    console.log("ERROR IN SAVING USER", err)
+                    console.log("ERROR IN SAVING USER", err);
                     return res.status(400).json({
                         message: "Could not save user",
-                        error: err,
+                        error: err.message,
                     });
                 });
         })
@@ -73,27 +67,27 @@ const signUpUser = async (req: Request, res: Response, next: NextFunction) => {
         });
 };
 
-const signInUser = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-    const { email, password } = req.body
-    const existingUser = await User.findOne({ email })
+const signInUser = async (req: Request, res: Response, next: NextFunction) => {
+    const { email, password } = req.body;
+    const existingUser = await User.findOne({ email });
     if (!existingUser) {
-        throw new BadRequestError("Email provided is not registered")
+        throw new BadRequestError("Email provided is not registered");
     }
 
-    const passwordsMatch = await Password.compare(password, existingUser.password)
+    const passwordsMatch = await Password.compare(
+        password,
+        existingUser.password
+    );
+
     if (!passwordsMatch) {
-        throw new BadRequestError("Wrong password. Please try again")
+        throw new BadRequestError("Wrong password. Please try again");
     }
 
     generateSignINJWT(existingUser)
-        .then(token => {
+        .then((token) => {
             req.session = {
                 token,
-            }
+            };
 
             // req.user = {
             //     existingUser
@@ -103,16 +97,14 @@ const signInUser = async (
                 message: "Sign in was successfull",
                 user: existingUser,
                 token,
-                sessionToken: req.session
-            })
-
-
+                sessionToken: req.session,
+            });
         })
-        .catch(err => {
+        .catch((err) => {
             res.status(400).json({
                 error: err.message,
             });
-        })
+        });
     async function generateSignINJWT(user: UserDocument) {
         try {
             const token = await jwt.sign(
@@ -129,18 +121,17 @@ const signInUser = async (
             throw new BadRequestError("Error occured. Try again Later");
         }
     }
-
-
 };
 
-const signOutUser = (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-    req.session = null
-    return res.status(200).json({})
-
+const signOutUser = (req: Request, res: Response, next: NextFunction) => {
+    try {
+        req.session = null;
+        return res.status(200).json({
+            message: "Signed out",
+        });
+    } catch (error) {
+        throw new BadRequestError("Error occured while signing you out");
+    }
 };
 
 export { currentUser, signUpUser, signInUser, signOutUser };

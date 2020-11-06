@@ -7,7 +7,7 @@ import { runValidation } from "./../middlewares/validation/index";
 import { validateUserSignUp, validateUserSignIn } from "./../middlewares/validation/validateUser"
 
 
-router.get("/currentuser", auth, currentUser);
+router.get("/currentuser", currentUser);
 router.post("/signup", validateUserSignUp, runValidation, signUpUser);
 router.post("/signin", validateUserSignIn, runValidation, signInUser);
 router.post("/signout", signOutUser);
