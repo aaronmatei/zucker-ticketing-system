@@ -1,7 +1,6 @@
 import { scrypt, randomBytes } from "crypto";
 import { promisify } from "util";
-const bcrypt = require("bcrypt");
-
+import bcrypt from "bcrypt";
 const scryptAsync = promisify(scrypt);
 
 export class Password {
@@ -11,31 +10,45 @@ export class Password {
 
         // return `${buf.toString('hex')}.${salt}`
         let hash;
-        bcrypt.hash(password, 10, (err: Error, hashh: string) => {
-            // Now we can store the password hash in db.
-            if (err) throw Error("Error in hashing password");
-            hash = hashh;
+        bcrypt.genSalt(10, function (error: Error, salt: any) {
+            if (error) {
+                console.log("ERR SALT GEN", error);
+                throw Error("Error in generating salt");
+            }
+            bcrypt.hash(password, salt, (err: Error, hashh: any) => {
+                // Now we can store the password hash in db.
+                if (err) {
+                    console.log("ERR HASHING", err);
+                    throw Error("Error in hashing password");
+                }
+                hash = hashh;
+                console.log("HASH", hash);
+            });
         });
         return hash;
     }
 
-    static async compare(storedPassword: string, suppliedPassword: string) {
+    static async compare(suppliedPassword: string, storedHashedPassword: string) {
         // const [hashedPassword, salt] = storedPassword.split('.')
         // const buf = (await scryptAsync(suppliedPassword, salt, 64)) as Buffer;
         // return buf.toString("hex") === hashedPassword
-        let res
-        bcrypt.compare(suppliedPassword, storedPassword, function (
+        let res;
+        bcrypt.compare(suppliedPassword, storedHashedPassword, function (
             err: Error,
-            ress: boolean
+            ress: any
         ) {
-            if (err) throw new Error("Error in comparing passwords");
+            if (err) {
+                console.log("ERR COMPARE PASS", err);
+                throw new Error("Error in comparing passwords");
+            }
             if (ress == true) {
-                res = true
+                res = true;
             } else {
-                res = false
+                res = false;
             }
 
+            console.log("RES", res);
         });
-        return res
+        return res;
     }
 }

@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from "express";
-import { User, UserDocument } from "./../models/User";
+import { User } from "./../models/User";
 import { BadRequestError } from "../errors/bad-request-error";
 import { Password } from "./../services/password";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 
 const currentUser = async (req: Request, res: Response, next: NextFunction) => {
     res.status(200).json({
@@ -12,7 +13,7 @@ const currentUser = async (req: Request, res: Response, next: NextFunction) => {
 
 const signUpUser = async (req: Request, res: Response, next: NextFunction) => {
     // generate jwt
-    async function generateSignUPJWT(user: UserDocument) {
+    async function generateSignUPJWT(user: any) {
         try {
             const token = await jwt.sign(
                 {
@@ -25,7 +26,6 @@ const signUpUser = async (req: Request, res: Response, next: NextFunction) => {
             );
             return token;
         } catch (error) {
-            console.log("TE", error.message);
             throw new BadRequestError("Error occured. Try again Later");
         }
     }
@@ -36,76 +36,96 @@ const signUpUser = async (req: Request, res: Response, next: NextFunction) => {
         throw new BadRequestError("Email is taken");
     }
 
-    const newUser = User.build({ email, password });
+    const newUser = new User({ email, password });
     generateSignUPJWT(newUser)
         .then((token) => {
             req.session = {
                 token,
             };
-            newUser
-                .save()
-                .then((user) => {
-                    return res.status(201).json({
-                        message: "User created successfully",
-                        token,
-                        user,
-                    });
-                })
-                .catch((err) => {
-                    console.log("ERROR IN SAVING USER", err);
-                    return res.status(400).json({
-                        message: "Could not save user",
-                        error: err.message,
-                    });
+
+            // hash password
+            bcrypt.genSalt(10, (err, salt) => {
+                if (err) {
+                    throw new Error("Error in generating salt");
+                }
+                bcrypt.hash(newUser.password, salt, (err, hash) => {
+                    if (err) {
+                        throw new Error("Error in hashing password");
+                    }
+                    newUser.password = hash;
+
+                    newUser
+                        .save()
+                        .then((user) => {
+                            return res.status(201).json({
+                                message: "User created successfully",
+                                token,
+                                user,
+                            });
+                        })
+                        .catch((err) => {
+                            throw new BadRequestError("Error in saving user");
+                        });
                 });
+            });
         })
         .catch((err) => {
-            // throw new BadRequestError(err.message)
-            res.status(400).json({
-                error: err.message,
-            });
+            throw new BadRequestError("Error in generating token");
+            // res.status(400).json({
+            //     error: err.message,
+            // });
         });
 };
 
 const signInUser = async (req: Request, res: Response, next: NextFunction) => {
     const { email, password } = req.body;
-    const existingUser = await User.findOne({ email });
-    if (!existingUser) {
-        throw new BadRequestError("Email provided is not registered");
-    }
+    await User.findOne({ email }).exec((err, foundUser) => {
+        if (err) {
+            throw new BadRequestError("Error in getting user with that email");
+        }
+        if (!foundUser) {
+            throw new BadRequestError("Email provided is not registered");
+        }
+        if (foundUser) {
 
-    const passwordsMatch = await Password.compare(
-        password,
-        existingUser.password
-    );
+            bcrypt.compare(password, foundUser.password, function (
+                err: Error,
+                isMatch: boolean
+            ) {
+                if (err) {
 
-    if (!passwordsMatch) {
-        throw new BadRequestError("Wrong password. Please try again");
-    }
+                    throw new Error("Error in comparing passwords.....");
+                }
 
-    generateSignINJWT(existingUser)
-        .then((token) => {
-            req.session = {
-                token,
-            };
+                generateSignINJWT(foundUser)
+                    .then((token) => {
+                        req.session = {
+                            token,
+                        };
 
-            // req.user = {
-            //     existingUser
-            // }
+                        // req.user = {
+                        //     existingUser
+                        // }
 
-            res.status(200).json({
-                message: "Sign in was successfull",
-                user: existingUser,
-                token,
-                sessionToken: req.session,
+                        res.status(200).json({
+                            message: "Sign in was successfull",
+                            user: foundUser,
+                            token,
+                            sessionToken: req.session,
+                        });
+                    })
+                    .catch((err) => {
+                        throw new BadRequestError("Error in generating sign in token");
+                        // res.status(400).json({
+                        //     error: err.message,
+                        // });
+                    });
             });
-        })
-        .catch((err) => {
-            res.status(400).json({
-                error: err.message,
-            });
-        });
-    async function generateSignINJWT(user: UserDocument) {
+        }
+    });
+
+    // generate signin token
+    async function generateSignINJWT(user: any) {
         try {
             const token = await jwt.sign(
                 {

@@ -1,62 +1,99 @@
 import mongoose from "mongoose";
 import { Password } from "./../services/password";
+import bcrypt from "bcrypt";
 
 // interface for creating user
-interface UserAttributes {
-    email: string;
-    password: string;
-}
+// interface UserAttributes {
+//     email: string;
+//     password: string;
+// }
 
 // interface for user model properties
-interface UserModel extends mongoose.Model<UserDocument> {
-    build(attrs: UserAttributes): UserDocument;
-}
+// interface UserModel extends mongoose.Model<UserDocument> {
+//     build(attrs: UserAttributes): UserDocument;
+// }
+
 
 // an interface that describes properties of a user document
-interface UserDocument extends mongoose.Document {
+export interface UserDocument extends mongoose.Document {
     email: string;
     password: string;
+    comparePasswords(password: string, cb: Function): any;
 }
 
 const userSchema = new mongoose.Schema(
     {
+        username: {
+            type: String,
+        },
         email: {
             type: String,
-            required: true,
+            unique: true,
+            index: true,
+            sparse: true,
+            lowercase: true,
+            trim: true,
         },
         password: {
             type: String,
-            required: true,
+        },
+        emailVerified: {
+            type: Boolean,
+            default: false,
         },
     },
     {
         timestamps: true,
-        toJSON: {
-            transform(doc, ret) {
-                ret.id = ret._id
-                delete ret._id
-                delete ret.__v
-                delete ret.createdAt
-                delete ret.updatedAt
-                delete ret.password
-
-            }
-        }
+        // toJSON: {
+        //     transform(doc, ret) {
+        //         ret.id = ret._id;
+        //         delete ret._id;
+        //         delete ret.__v;
+        //         delete ret.createdAt;
+        //         delete ret.updatedAt;
+        //         delete ret.password;
+        //     },
+        // },
     }
 );
 
-userSchema.pre("save", async function (done) {
-    if (this.isModified("password")) {
-        const hashed = await Password.toHash(this.get("password"));
-        this.set("password", hashed);
-    }
+// userSchema.pre<IUser>("save", async function (next) {
+//     let user = this;
+//     if (user.password && user.isModified("password")) {
+//         bcrypt.genSalt(10, (err, salt) => {
+//             if (err) {
+//                 return next(err);
+//             }
+//             bcrypt.hash(user.password, salt, (err, hash) => {
+//                 if (err) {
+//                     return next(err);
+//                 }
+//                 user.password = hash;
+//                 console.log("HASHHH", user.password)
+//                 return next();
+//             });
+//         });
+//     }
 
-    done();
-});
+//     return next();
+// });
 
-userSchema.statics.build = (attributes: UserAttributes) => {
-    return new User(attributes);
-};
+// userSchema.methods.comparePasswords = function (
+//     candidatePassword: string,
+//     cb: Function
+// ) {
+//     bcrypt.compare(candidatePassword, this.get("password"), function (
+//         err,
+//         isMatch
+//     ) {
+//         if (err) return cb(err);
+//         cb(null, isMatch);
+//     });
+// };
 
-const User = mongoose.model<UserDocument, UserModel>("User", userSchema);
-export { User, UserDocument, UserModel };
+// userSchema.statics.build = (attributes: UserAttributes) => {
+//     return new User(attributes);
+// };
+
+const User = mongoose.model<UserDocument>("User", userSchema);
+export { User };

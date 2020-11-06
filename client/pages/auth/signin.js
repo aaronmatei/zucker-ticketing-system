@@ -19,7 +19,7 @@ export default () => {
     const loginUser = (user) => {
         dispatch(signInUser(user))
             .then((res) => {
-                setTimeout(() => Router.push("/", 1000));
+                Router.push("/");
                 console.log("RES", res);
             })
             .catch((err) => {
@@ -49,7 +49,7 @@ export default () => {
     const onSubmit = async (e) => {
         e.preventDefault();
         // doRequest()
-        loginUser(values);
+        loginUser({ email: values.email, password: values.password });
     };
 
     const displayAlert = (type) => {
