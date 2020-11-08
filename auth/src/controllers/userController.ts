@@ -5,9 +5,9 @@ import { Password } from "./../services/password";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
-const currentUser = async (req: Request, res: Response, next: NextFunction) => {
+const getCurrentUser = async (req: Request, res: Response, next: NextFunction) => {
     res.status(200).json({
-        loggedInUser: req.currentUser,
+        loggedInUser: req.currentUser || null,
     });
 };
 
@@ -164,4 +164,4 @@ const signOutUser = (req: Request, res: Response, next: NextFunction) => {
     }
 };
 
-export { currentUser, signUpUser, signInUser, signOutUser };
+export { getCurrentUser, signUpUser, signInUser, signOutUser };

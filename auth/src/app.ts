@@ -6,6 +6,7 @@ require("dotenv").config();
 const logger = require("morgan");
 const cors = require("cors");
 import cookieSession from "cookie-session";
+import { currentUser } from "./middlewares/currentUser"
 
 import { errorHandler } from "./middlewares/error-handler";
 import { NotFoundError } from "./errors/not-found";
@@ -23,6 +24,8 @@ app.use(
         secure: process.env.NODE_ENV !== "test",
     })
 );
+
+// app.use(currentUser)
 
 app.use("/api/v1/users", usersRoutes);
 

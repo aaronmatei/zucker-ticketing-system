@@ -9,6 +9,7 @@ import cookieSession from "cookie-session";
 
 import { errorHandler } from "./middlewares/error-handler";
 import { NotFoundError } from "./errors/not-found";
+import { currentUser } from "./middlewares/currentUser"
 
 const app = express();
 const ticketsRoutes = require("./routes/tickets");
@@ -23,6 +24,8 @@ app.use(
         secure: process.env.NODE_ENV !== "test",
     })
 );
+
+// app.use(currentUser)
 
 app.use("/api/v1/tickets", ticketsRoutes);
 

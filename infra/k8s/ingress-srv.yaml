@@ -1,4 +1,4 @@
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: ingress-service
@@ -15,6 +15,11 @@ spec:
             backend:
               serviceName: auth-srv
               servicePort: 3000
+          - path: /api/v1/tickets/?(.*)
+            backend:
+              serviceName: tickets-srv
+              servicePort: 3000
+
           - path: /?(.*)
             backend:
               serviceName: client-srv
