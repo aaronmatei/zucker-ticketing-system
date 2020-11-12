@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { Password } from "./../services/password";
+import { Password } from "../services/password";
 import bcrypt from "bcrypt";
 
 // interface for creating user

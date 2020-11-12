@@ -6,10 +6,10 @@ require("dotenv").config();
 const logger = require("morgan");
 const cors = require("cors");
 import cookieSession from "cookie-session";
-import { currentUser } from "./middlewares/currentUser"
+import { currentUser } from "@arzuckertickets/common"
 
-import { errorHandler } from "./middlewares/error-handler";
-import { NotFoundError } from "./errors/not-found";
+import { errorHandler } from "@arzuckertickets/common";
+import { NotFoundError } from "@arzuckertickets/common";
 
 const app = express();
 const usersRoutes = require("./routes/users");

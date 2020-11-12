@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { NotAuthorizedError } from "../errors/not-authorized-error";
-import { NotFoundError } from "../errors/not-found";
+import { NotAuthorizedError, NotFoundError } from "@arzuckertickets/common";
 import { Ticket } from "./../models/Ticket";
 
 const getTickets = async (req: Request, res: Response, next: NextFunction) => {

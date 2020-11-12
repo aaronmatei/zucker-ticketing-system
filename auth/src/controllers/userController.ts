@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { User } from "./../models/User";
-import { BadRequestError } from "../errors/bad-request-error";
-import { Password } from "./../services/password";
+import { User } from "../models/User";
+import { BadRequestError } from "@arzuckertickets/common";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 

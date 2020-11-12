@@ -7,9 +7,8 @@ const logger = require("morgan");
 const cors = require("cors");
 import cookieSession from "cookie-session";
 
-import { errorHandler } from "./middlewares/error-handler";
-import { NotFoundError } from "./errors/not-found";
-import { currentUser } from "./middlewares/currentUser"
+import { errorHandler, NotFoundError, currentUser } from "@arzuckertickets/common";
+
 
 const app = express();
 const ticketsRoutes = require("./routes/tickets");

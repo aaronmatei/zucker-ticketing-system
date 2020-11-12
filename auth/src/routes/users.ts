@@ -2,9 +2,9 @@ import express from "express";
 const router = express.Router();
 
 import { getCurrentUser, signUpUser, signInUser, signOutUser } from "../controllers/userController";
-import { runValidation } from "./../middlewares/validation/index";
-import { validateUserSignUp, validateUserSignIn } from "./../middlewares/validation/validateUser"
-import { currentUser } from "./../middlewares/currentUser"
+import { runValidation } from "@arzuckertickets/common";
+import { validateUserSignUp, validateUserSignIn } from "@arzuckertickets/common"
+import { currentUser } from "@arzuckertickets/common"
 
 
 router.get("/currentuser", currentUser, getCurrentUser);
