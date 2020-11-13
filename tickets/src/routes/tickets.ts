@@ -8,9 +8,10 @@ import {
     editTicket,
     deleteTicket,
 } from "./../controllers/ticketsController";
-import { auth } from "@arzuckertickets/common";
-import { validateAddTicket, validateEditTicket } from "@arzuckertickets/common";
-import { runValidation } from "@arzuckertickets/common";
+import { auth, runValidation, validateAddTicket, validateEditTicket } from "@arzuckertickets/common";
+
+
+
 
 router.post("/create", validateAddTicket, runValidation, auth, createTicket);
 router.get("/:id", auth, getTicket);
