@@ -1,7 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 import { NotFoundError, NotAuthorizedError } from "@arzuckertickets/common";
 import { Ticket } from "./../models/Ticket";
+import { TicketCreatedPublisher } from "./../events/publishers/ticket-created-publisher";
+import { TicketUpdatedPublisher } from "./../events/publishers/ticket-updated-publisher";
+import { TicketDeletedPublisher } from "./../events/publishers/ticket-deleted-publisher";
+import { natsWrapper } from "./../nats-wrapper";
+import mongoose from "mongoose";
 
+// GET tickets
 const getTickets = async (req: Request, res: Response, next: NextFunction) => {
     const tickets = await Ticket.find({});
     res.status(200).json({
@@ -9,6 +15,7 @@ const getTickets = async (req: Request, res: Response, next: NextFunction) => {
     });
 };
 
+// create Ticket
 const createTicket = async (
     req: Request,
     res: Response,
@@ -18,17 +25,29 @@ const createTicket = async (
     const newTicket = Ticket.build({
         title,
         price,
-        userId: req.currentUser!.id,
+        userId: new mongoose.Types.ObjectId().toHexString(),
     });
+    // userId: req.currentUser!.id,
     await newTicket
         .save()
-        .then((savedTicket) => { })
-        .catch((err) => { });
-    res.status(201).json({
-        ticket: newTicket,
-    });
+        .then((savedTicket) => {
+            new TicketCreatedPublisher(natsWrapper.client).publish({
+                id: savedTicket.id,
+                title: savedTicket.title,
+                price: savedTicket.price,
+                userId: savedTicket.userId,
+            });
+            res.status(201).json({
+                ticket: savedTicket,
+            });
+        })
+        .catch((err) => {
+            console.log("ERROR SAVING TICKET", err);
+            throw new Error(err.message);
+        });
 };
 
+// get Single Ticket
 const getTicket = async (req: Request, res: Response, next: NextFunction) => {
     const ticket = await Ticket.findById(req.params.id);
     if (!ticket) {
@@ -43,28 +62,37 @@ const getTicket = async (req: Request, res: Response, next: NextFunction) => {
     });
 };
 
+// edit or update ticket
+
 const editTicket = async (req: Request, res: Response, next: NextFunction) => {
     const ticket = await Ticket.findById(req.params.id);
     if (!ticket) {
         throw new NotFoundError();
     }
 
-    if (ticket.userId !== req.currentUser!.id) {
-        throw new NotAuthorizedError()
-
-    }
+    // if (ticket.userId !== req.currentUser!.id) {
+    //     throw new NotAuthorizedError();
+    // }
 
     ticket.set({
         title: req.body.title,
-        price: req.body.price
-    })
+        price: req.body.price,
+    });
 
-    await ticket.save()
-
-    res.status(200).json({
-        ticket,
+    await ticket.save().then((savedTicket) => {
+        new TicketUpdatedPublisher(natsWrapper.client).publish({
+            id: savedTicket.id,
+            title: savedTicket.title,
+            price: savedTicket.price,
+            userId: savedTicket.userId,
+        });
+        res.status(200).json({
+            updatedTicket: ticket,
+        });
     });
 };
+
+// delete ticket
 
 const deleteTicket = async (
     req: Request,
@@ -79,8 +107,22 @@ const deleteTicket = async (
         //     errors: [{ message: "ticket not found" }]
         // })
     }
-    res.status(200).json({
-        ticket,
+
+    await Ticket.findByIdAndDelete(ticket.id, function (err: Error) {
+        if (err) {
+            console.log("ERROR IN DELETING", err);
+        }
+        new TicketDeletedPublisher(natsWrapper.client).publish({
+            id: ticket.id,
+            title: ticket.title,
+            price: ticket.price,
+            userId: ticket.userId,
+
+        })
+        res.status(200).json({
+            ticketDeleted: ticket,
+            message: "Ticket deleted successfully",
+        });
     });
 };
 

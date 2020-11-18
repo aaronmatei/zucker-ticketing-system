@@ -13,8 +13,9 @@ import { auth, runValidation, validateAddTicket, validateEditTicket } from "@arz
 
 
 
+// TODO: ADD auth
 router.post("/create", validateAddTicket, runValidation, auth, createTicket);
-router.get("/:id", auth, getTicket);
+router.get("/:id", getTicket);
 router.get("/", getTickets);
 router.put("/edit/:id", validateEditTicket, runValidation, auth, editTicket);
 router.delete("/delete/:id", auth, deleteTicket);
