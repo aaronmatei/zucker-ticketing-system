@@ -17,7 +17,9 @@ const EXPIRATION_WINDOW_SECONDS = 15 * 60;
 
 // GET tickets
 const getOrders = async (req: Request, res: Response, next: NextFunction) => {
-    const orders = "orders";
+    const orders = await Order.find({
+        userId: req.currentUser!.id
+    }).populate('ticket')
     res.status(200).json({
         orders,
     });
@@ -59,7 +61,7 @@ const createOrder = async (req: Request, res: Response, next: NextFunction) => {
 
 // get Single Ticket
 const getOrder = async (req: Request, res: Response, next: NextFunction) => {
-    const order = "";
+    const order = await Order.findById(req.params.orderId);
     if (!order) {
         throw new NotFoundError();
 
@@ -67,9 +69,10 @@ const getOrder = async (req: Request, res: Response, next: NextFunction) => {
         //     errors: [{ message: "ticket not found" }]
         // })
     }
-    res.status(200).json({
-        order,
-    });
+    if ()
+        res.status(200).json({
+            order,
+        });
 };
 
 // delete ticket

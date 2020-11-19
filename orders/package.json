@@ -25,6 +25,7 @@
     "@types/jsonwebtoken": "^8.5.0",
     "@types/mongoose": "^5.7.36",
     "bcrypt": "^5.0.0",
+    "ci-info": "^2.0.0",
     "config": "^3.3.2",
     "cookie-session": "^1.4.0",
     "cors": "^2.8.5",
