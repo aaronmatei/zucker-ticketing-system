@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+
 import {
     NotFoundError,
     NotAuthorizedError,
@@ -7,9 +8,11 @@ import {
 } from "@arzuckertickets/common";
 import { Order } from "./../models/Order";
 import { Ticket } from "./../models/Ticket";
-// import { TicketCreatedPublisher } from "./../events/publishers/ticket-created-publisher";
-// import { TicketUpdatedPublisher } from "./../events/publishers/ticket-updated-publisher";
-// import { TicketDeletedPublisher } from "./../events/publishers/ticket-deleted-publisher";
+// events
+import { OrderCreatedPublisher } from "./../events/publishers/order-created-publisher";
+import { OrderCancelledPublisher } from "./../events/publishers/order-cancelled-publisher";
+
+
 import { natsWrapper } from "./../nats-wrapper";
 import mongoose from "mongoose";
 
@@ -18,8 +21,8 @@ const EXPIRATION_WINDOW_SECONDS = 15 * 60;
 // GET tickets
 const getOrders = async (req: Request, res: Response, next: NextFunction) => {
     const orders = await Order.find({
-        userId: req.currentUser!.id
-    }).populate('ticket')
+        userId: req.currentUser!.id,
+    }).populate("ticket");
     res.status(200).json({
         orders,
     });
@@ -52,6 +55,16 @@ const createOrder = async (req: Request, res: Response, next: NextFunction) => {
         .save()
         .then((savedOrder) => {
             console.log("SAVED ORDER", savedOrder);
+            new OrderCreatedPublisher(natsWrapper.client).publish({
+                id: savedOrder.id,
+                userId: savedOrder.userId,
+                status: savedOrder.status,
+                expiresAt: savedOrder.expiresAt.toISOString(),
+                ticket: {
+                    id: savedOrder.ticket.id,
+                    price: savedOrder.ticket.price
+                }
+            })
         })
         .catch((err) => {
             console.log("ERROR IN SAVING ORDER", err);
@@ -69,23 +82,38 @@ const getOrder = async (req: Request, res: Response, next: NextFunction) => {
         //     errors: [{ message: "ticket not found" }]
         // })
     }
-    if ()
-        res.status(200).json({
-            order,
-        });
+    if (order.userId !== req.currentUser!.id) {
+        throw new NotAuthorizedError();
+    }
+    res.status(200).json({
+        order,
+    });
 };
 
 // delete ticket
 
 const deleteOrder = async (req: Request, res: Response, next: NextFunction) => {
-    const order = "";
+    const order = await Order.findById(req.params.orderId);
     if (!order) {
         throw new NotFoundError();
-
-        // res.status(404).json({
-        //     errors: [{ message: "ticket not found" }]
-        // })
     }
+    if (order.userId !== req.currentUser!.id) {
+        throw new NotAuthorizedError();
+    }
+    order.status = OrderStatus.Cancelled;
+    await order.save().then(cancelledOrder => {
+        new OrderCancelledPublisher(natsWrapper.client).publish({
+            id: cancelledOrder.id,
+            ticket: {
+                id: cancelledOrder.ticket.id,
+                price: cancelledOrder.ticket.price
+            }
+        })
+    });
+    res.status(204).json({
+        order,
+        message: "Order has been cancelled",
+    });
 };
 
 export { createOrder, getOrder, getOrders, deleteOrder };
