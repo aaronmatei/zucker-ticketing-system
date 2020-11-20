@@ -4,7 +4,7 @@ import { natsWrapper } from "./nats-wrapper";
 
 // listeners 
 import { TicketCreatedListener } from "./events/listeners/ticket-created-listener";
-import { TicketUpdatedEventListener } from "./events/listeners/ticket-updated-listener";
+import { TicketUpdatedListener } from "./events/listeners/ticket-updated-listener";
 
 const PORT = process.env.PORT;
 
@@ -43,7 +43,7 @@ const start = async () => {
 
     // listeners 
     new TicketCreatedListener(natsWrapper.client).listen();
-    new TicketUpdatedEventListener(natsWrapper.client).listen();
+    new TicketUpdatedListener(natsWrapper.client).listen();
 
     // connect to DB
     connectDB();

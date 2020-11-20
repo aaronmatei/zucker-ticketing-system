@@ -1,5 +1,9 @@
 import { Request, Response, NextFunction } from "express";
-import { NotFoundError, NotAuthorizedError } from "@arzuckertickets/common";
+import {
+    NotFoundError,
+    NotAuthorizedError,
+    BadRequestError,
+} from "@arzuckertickets/common";
 import { Ticket } from "./../models/Ticket";
 import { TicketCreatedPublisher } from "./../events/publishers/ticket-created-publisher";
 import { TicketUpdatedPublisher } from "./../events/publishers/ticket-updated-publisher";
@@ -7,7 +11,7 @@ import { TicketDeletedPublisher } from "./../events/publishers/ticket-deleted-pu
 import { natsWrapper } from "./../nats-wrapper";
 import mongoose from "mongoose";
 
-// GET tickets
+// GET - get tickets
 const getTickets = async (req: Request, res: Response, next: NextFunction) => {
     const tickets = await Ticket.find({});
     res.status(200).json({
@@ -15,7 +19,7 @@ const getTickets = async (req: Request, res: Response, next: NextFunction) => {
     });
 };
 
-// create Ticket
+// POST - create Ticket
 const createTicket = async (
     req: Request,
     res: Response,
@@ -25,9 +29,9 @@ const createTicket = async (
     const newTicket = Ticket.build({
         title,
         price,
-        userId: new mongoose.Types.ObjectId().toHexString(),
+        userId: req.currentUser!.id,
     });
-    // userId: req.currentUser!.id,
+
     await newTicket
         .save()
         .then((savedTicket) => {
@@ -36,6 +40,7 @@ const createTicket = async (
                 title: savedTicket.title,
                 price: savedTicket.price,
                 userId: savedTicket.userId,
+                version: savedTicket.version,
             });
             res.status(201).json({
                 ticket: savedTicket,
@@ -47,7 +52,7 @@ const createTicket = async (
         });
 };
 
-// get Single Ticket
+// GET - Single Ticket
 const getTicket = async (req: Request, res: Response, next: NextFunction) => {
     const ticket = await Ticket.findById(req.params.id);
     if (!ticket) {
@@ -62,17 +67,20 @@ const getTicket = async (req: Request, res: Response, next: NextFunction) => {
     });
 };
 
-// edit or update ticket
+// PUT - edit or update ticket
 
 const editTicket = async (req: Request, res: Response, next: NextFunction) => {
     const ticket = await Ticket.findById(req.params.id);
     if (!ticket) {
         throw new NotFoundError();
     }
+    if (ticket.orderId) {
+        throw new BadRequestError("Ticket is reserved");
+    }
 
-    // if (ticket.userId !== req.currentUser!.id) {
-    //     throw new NotAuthorizedError();
-    // }
+    if (ticket.userId !== req.currentUser!.id) {
+        throw new NotAuthorizedError();
+    }
 
     ticket.set({
         title: req.body.title,
@@ -85,6 +93,7 @@ const editTicket = async (req: Request, res: Response, next: NextFunction) => {
             title: savedTicket.title,
             price: savedTicket.price,
             userId: savedTicket.userId,
+            version: savedTicket.version,
         });
         res.status(200).json({
             updatedTicket: ticket,
@@ -92,8 +101,7 @@ const editTicket = async (req: Request, res: Response, next: NextFunction) => {
     });
 };
 
-// delete ticket
-
+// DELETE - delete ticket
 const deleteTicket = async (
     req: Request,
     res: Response,
@@ -117,8 +125,7 @@ const deleteTicket = async (
             title: ticket.title,
             price: ticket.price,
             userId: ticket.userId,
-
-        })
+        });
         res.status(200).json({
             ticketDeleted: ticket,
             message: "Ticket deleted successfully",

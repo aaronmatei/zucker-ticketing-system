@@ -57,6 +57,7 @@ const createOrder = async (req: Request, res: Response, next: NextFunction) => {
             console.log("SAVED ORDER", savedOrder);
             new OrderCreatedPublisher(natsWrapper.client).publish({
                 id: savedOrder.id,
+                version: savedOrder.version,
                 userId: savedOrder.userId,
                 status: savedOrder.status,
                 expiresAt: savedOrder.expiresAt.toISOString(),
@@ -104,6 +105,7 @@ const deleteOrder = async (req: Request, res: Response, next: NextFunction) => {
     await order.save().then(cancelledOrder => {
         new OrderCancelledPublisher(natsWrapper.client).publish({
             id: cancelledOrder.id,
+            version: cancelledOrder.version,
             ticket: {
                 id: cancelledOrder.ticket.id,
                 price: cancelledOrder.ticket.price
