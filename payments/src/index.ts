@@ -2,11 +2,6 @@ import { connectDB } from "./../config/db";
 import { app } from "./app";
 import { natsWrapper } from "./nats-wrapper";
 
-// listeners
-import { TicketCreatedListener } from "./events/listeners/ticket-created-listener";
-import { TicketUpdatedListener } from "./events/listeners/ticket-updated-listener";
-import { ExpirationCompleteListener } from "./events/listeners/expiration-complete-listener";
-
 const PORT = process.env.PORT;
 
 // start function
@@ -46,9 +41,6 @@ const start = async () => {
   process.on("SIGTERM", () => natsWrapper.client.close()); //terminate
 
   // listeners
-  new TicketCreatedListener(natsWrapper.client).listen();
-  new TicketUpdatedListener(natsWrapper.client).listen();
-  new ExpirationCompleteListener(natsWrapper.client).listen();
 
   // connect to DB
   connectDB();
