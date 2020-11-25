@@ -14,6 +14,8 @@ import {
 } from "@arzuckertickets/common";
 
 const app = express();
+// import routes
+const paymentRoutes = require("./routes/payments");
 
 app.set("trust proxy", 1);
 app.use(logger("combined"));
@@ -27,6 +29,7 @@ app.use(
 );
 
 // app.use(currentUser)
+app.use("/api/v1/payments", paymentRoutes);
 
 // not found errors
 app.all("*", async (req, res) => {

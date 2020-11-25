@@ -1,6 +1,8 @@
 import { connectDB } from "./../config/db";
 import { app } from "./app";
 import { natsWrapper } from "./nats-wrapper";
+import { OrderCancelledListener } from "./events/listeners/order-cancelled-listener";
+import { OrderCreatedListener } from "./events/listeners/order-created-lister";
 
 const PORT = process.env.PORT;
 
@@ -24,6 +26,9 @@ const start = async () => {
   if (!process.env.NATS_CLUSTER_ID) {
     throw new Error("NATS_CLUSTER_ID must be defined");
   }
+  if (!process.env.STRIPE_KEY) {
+    throw new Error("STRIPE_KEY must be defined");
+  }
 
   await natsWrapper.connect(
     process.env.NATS_CLUSTER_ID,
@@ -41,6 +46,8 @@ const start = async () => {
   process.on("SIGTERM", () => natsWrapper.client.close()); //terminate
 
   // listeners
+  new OrderCancelledListener(natsWrapper.client).listen();
+  new OrderCreatedListener(natsWrapper.client).listen();
 
   // connect to DB
   connectDB();
