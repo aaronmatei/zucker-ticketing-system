@@ -23,7 +23,7 @@ const LandingPage = (props) => {
         <td>{ticket.price}</td>
         <td>
           <Link href="/tickets/[ticketId]" as={`/tickets/${ticket.id}`}>
-            <a href="">View</a>
+            <a>View</a>
           </Link>
         </td>
       </tr>
@@ -33,9 +33,9 @@ const LandingPage = (props) => {
     <React.Fragment>
       <div>
         {props.loggedInUser ? (
-          <h3>{`LandingPage: signed in as ${props.loggedInUser.email}`}</h3>
+          <h5>{`LandingPage: signed in as ${props.loggedInUser.email}`}</h5>
         ) : (
-          <h3>Home Page: You are signed out</h3>
+          <h5>Home Page: You are signed out</h5>
         )}
       </div>
       <div className="dropdown-divider"></div>
