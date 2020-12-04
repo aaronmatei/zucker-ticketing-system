@@ -5,15 +5,17 @@ import { useDispatch, useSelector } from "react-redux";
 import { loadTickets } from "./../redux/actions/ticket-actions/load-tickets-action";
 import Link from "next/link";
 
-const LandingPage = (props) => {
-  const dispatch = useDispatch();
-  react.useEffect(() => {
-    console.log("USE EFFECT CALLED");
-    dispatch(loadTickets());
-  }, [dispatch]);
+const LandingPage = ({ loggedInUser }) => {
   const { loading, success, successMessage, errors, tickets } = useSelector(
     (state) => state.ticketsss
   );
+  const dispatch = useDispatch();
+  react.useEffect(() => {
+    console.log("Tickets at index UE", tickets);
+  }, []);
+  // const { loading, success, successMessage, errors } = useSelector(
+  //   (state) => state.ticketsss
+  // );
 
   const ticketList = tickets.map((ticket) => {
     return (
@@ -32,15 +34,21 @@ const LandingPage = (props) => {
   return (
     <React.Fragment>
       <div>
-        {props.loggedInUser ? (
-          <h5>{`LandingPage: signed in as ${props.loggedInUser.email}`}</h5>
+        {loggedInUser ? (
+          <h5>{`LandingPage: signed in as ${loggedInUser.email}`}</h5>
         ) : (
           <h5>Home Page: You are signed out</h5>
         )}
       </div>
       <div className="dropdown-divider"></div>
       <div>
-        <h1>Available tickets</h1>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <h5>Available tickets</h5>
+          <Link href="/tickets/new">
+            <button className="btn btn-info">New Ticket</button>
+          </Link>
+        </div>
+
         {loading ? (
           "Loading tickets..."
         ) : (
@@ -62,11 +70,8 @@ const LandingPage = (props) => {
 };
 
 LandingPage.getInitialProps = async (context) => {
-  // const state = reduxStore.getState();
-  // console.log("REDUX STORE STATE", context.store.getState());
-  // context.store.dispatch(loadTickets());
-  // const tickets = context.store.getState().ticketsss;
-  // console.log("Tickets", tickets);
+  // const tickets = context.store.getState().ticketsss.tickets;
+  // console.log("Tickets at index", tickets);
   return {};
 };
 

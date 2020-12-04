@@ -5,6 +5,7 @@ import Header from "./../components/Header";
 import { useDispatch, useSelector } from "react-redux";
 import { loadUser } from "./../redux/actions/user-actions/load-user";
 import { loadTickets } from "./../redux/actions/ticket-actions/load-tickets-action";
+import { loadOrders } from "./../redux/actions/order-actions/load-orders-action";
 import { Provider } from "react-redux";
 import initStore from "./../redux/store";
 import withRedux from "next-redux-wrapper";
@@ -16,6 +17,8 @@ const AppComponent = (props) => {
   useEffect(() => {
     // load user everytime we render
     dispatch(loadUser());
+    dispatch(loadTickets());
+    dispatch(loadOrders());
   }, [dispatch]);
 
   const { user, loading, auth, error, success, token } = useSelector(
@@ -39,6 +42,7 @@ AppComponent.getInitialProps = async ({ Component, ctx }) => {
 
   // ctx.store.dispatch(loadTickets());
   // ctx.store.dispatch(loadUser());
+  // ctx.store.dispatch(loadOrders());
 
   return { pageProps };
 };

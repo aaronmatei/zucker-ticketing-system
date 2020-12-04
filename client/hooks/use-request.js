@@ -7,13 +7,13 @@ export default ({ url, method, body, onSuccess }) => {
     success: undefined,
   });
 
-  const doRequest = async () => {
+  const doRequest = async (props = {}) => {
     try {
       setValues({ ...values, success: true, errors: null });
-      const response = await axios[method](url, body);
+      const response = await axios[method](url, { ...body, ...props });
       setValues({ ...values, success: true, errors: null });
       if (onSuccess) {
-        setTimeout(() => onSuccess(response.data), 2000);
+        onSuccess(response.data);
       }
       return response.data;
     } catch (error) {
