@@ -5,17 +5,43 @@ import { useDispatch, useSelector } from "react-redux";
 import { loadTickets } from "./../../redux/actions/ticket-actions/load-tickets-action";
 import { createOrder } from "./../../redux/actions/order-actions/create-order-action";
 import moment from "moment";
+import StripeCheckout from "react-stripe-checkout";
 
-const OrderShow = ({ orderId, orders, order, errors }) => {
+const OrderShow = ({ orderId, orders, order, loggedInUser }) => {
+  const [timeLeft, setTimeLeft] = react.useState(0);
+
+  // do request
+
+  const { doRequest, errors } = useRequest({
+    url: "/api/v1/payments/create",
+    method: "post",
+    body: {
+      orderId: order.id,
+    },
+    onSuccess: () => Router.push("/orders"),
+  });
+
+  react.useEffect(() => {
+    const findTimeLeft = () => {
+      const msLeft = new Date(order.expiresAt) - new Date();
+      setTimeLeft(Math.round(msLeft / 1000));
+    };
+
+    findTimeLeft();
+    const timerId = setInterval(findTimeLeft, 1000);
+
+    return () => {
+      clearInterval(timerId);
+    };
+  }, [order]);
+
   return (
     <div>
-      <h5>{`ORDER ID: ${orderId} `}</h5>
-      <h5>
-        {`EXPIRES ON: ${
-          order &&
-          moment(order.expiresAt).format("dddd, MMMM Do YYYY, h:mm:ss a")
-        }`}
-      </h5>
+      {timeLeft < 0 ? (
+        <div>Your order has expired</div>
+      ) : (
+        <div>You have {timeLeft} seconds to pay for this order</div>
+      )}
 
       <div className="card">
         <div className="card-header">
@@ -28,19 +54,16 @@ const OrderShow = ({ orderId, orders, order, errors }) => {
           <p className="card-text">
             Ticket Title: {order && order.ticket.title}
           </p>
-          <button className="btn btn-primary">Cancel</button>
+          <button className="btn btn-danger">Cancel</button>
+          <StripeCheckout
+            token={({ id }) => doRequest({ token: id })}
+            stripeKey="pk_test_fhni8xX2PqYjfjgPfW7yhzln00qwRVPGvf"
+            amount={order.ticket.price * 100}
+            email={loggedInUser.email}
+          />
         </div>
       </div>
-      {errors.length > 0 && (
-        <div className="alert alert-danger">
-          <h4>Oops....</h4>
-          <ul className="my-0">
-            {errors.map((err) => (
-              <li key={err.message}>{err.message}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {errors}
     </div>
   );
 };

@@ -2,20 +2,19 @@ import React, * as react from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Link from "next/link";
 
-const showOrders = () => {
-  const { loading, success, successMessage, errors, orders } = useSelector(
-    (state) => state.ordersss
-  );
+const showOrders = ({ orders, loading }) => {
+  // const { loading, success, successMessage, errors, orders } = useSelector(
+  //   (state) => state.ordersss
+  // );
   react.useEffect(() => {
-    console.log("USE EFFECT ORDERS CALLED");
-    console.log("ORDERS INDEX", orders);
-  }, []);
+    console.log("USE EFFECT ORDERS CALLED", orders);
+  }, [orders]);
 
   const ordersList = orders.map((orderr) => {
     return (
       <tr key={orderr.id}>
         <td>{orderr.id.substring(20, 24)}</td>
-        <td>{orderr.userId}</td>
+        <td>{orderr.status}</td>
         <td>{orderr.ticket.title}</td>
         <td>{orderr.ticket.price}</td>
         <td>{orderr.expiresAt}</td>
@@ -31,7 +30,12 @@ const showOrders = () => {
   return (
     <div>
       <div>
-        <h1>This are your orders</h1>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <h1>Thsese are your orders</h1>
+          <Link href="/">
+            <button className="btn btn-info">View tickets</button>
+          </Link>
+        </div>
         {loading ? (
           "Loading orders..."
         ) : (
@@ -39,7 +43,7 @@ const showOrders = () => {
             <thead>
               <tr>
                 <th>#</th>
-                <th>User Id</th>
+                <th>Status</th>
                 <th>Ticket Title</th>
                 <th>Ticket Price</th>
                 <th>Expires At</th>
@@ -54,6 +58,7 @@ const showOrders = () => {
   );
 };
 showOrders.getInitialProps = async (context) => {
-  return {};
+  const { orders, loading } = context.store.getState().ordersss;
+  return { orders, loading };
 };
 export default showOrders;

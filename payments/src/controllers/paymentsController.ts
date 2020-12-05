@@ -53,6 +53,12 @@ const createPayment = async (
         orderId: savedPayment.orderId,
         stripeId: savedPayment.stripeId,
       });
+      // await Order.collection.dropIndexes(function (err, results) {
+      //   if (err) {
+      //     console.log("Erro", err);
+      //   }
+      //   console.log("Results", results);
+      // });
 
       res.status(201).json({
         savedPayment,

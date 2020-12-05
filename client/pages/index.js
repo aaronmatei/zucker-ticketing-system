@@ -47,6 +47,9 @@ const LandingPage = ({ loggedInUser }) => {
           <Link href="/tickets/new">
             <button className="btn btn-info">New Ticket</button>
           </Link>
+          <Link href="/orders">
+            <button className="btn btn-info">View orders</button>
+          </Link>
         </div>
 
         {loading ? (
