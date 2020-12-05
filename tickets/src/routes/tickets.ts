@@ -1,21 +1,38 @@
 import express from "express";
 const router = express.Router();
 
-import { getTicket, createTicket, getTickets, editTicket, deleteTicket } from "./../controllers/ticketsController"
-import { auth } from "../middlewares/auth"
-import { validateAddTicket, validateEditTicket } from "./../middlewares/validation/validateTicket"
-import { runValidation } from "./../middlewares/validation"
+import {
+  getTicket,
+  createTicket,
+  getTickets,
+  editTicket,
+  deleteTicket,
+} from "./../controllers/ticketsController";
+import {
+  auth,
+  currentUser,
+  runValidation,
+  validateAddTicket,
+  validateEditTicket,
+} from "@arzuckertickets/common";
 
-router.post("/create", validateAddTicket, runValidation, auth, createTicket)
-router.get("/:id", auth, getTicket)
-router.get("/", getTickets)
-router.put("/edit/:id", validateEditTicket, runValidation, auth, editTicket)
-router.delete("/delete/:id", auth, deleteTicket)
+// TODO: ADD auth
+router.post(
+  "/create",
+  validateAddTicket,
+  runValidation,
+  currentUser,
+  createTicket
+);
+router.get("/:id", currentUser, getTicket);
+router.get("/", currentUser, getTickets);
+router.put(
+  "/edit/:id",
+  validateEditTicket,
+  runValidation,
+  currentUser,
+  editTicket
+);
+router.delete("/delete/:id", currentUser, deleteTicket);
 
-
-
-
-
-
-
-module.exports = router
+module.exports = router;

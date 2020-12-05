@@ -1,46 +1,53 @@
 import "bootstrap/dist/css/bootstrap.css";
-import buildClient from "./../api/build-client";
 import axios from "axios";
 import { useEffect } from "react";
 import Header from "./../components/Header";
 import { useDispatch, useSelector } from "react-redux";
 import { loadUser } from "./../redux/actions/user-actions/load-user";
+import { loadTickets } from "./../redux/actions/ticket-actions/load-tickets-action";
+import { loadOrders } from "./../redux/actions/order-actions/load-orders-action";
 import { Provider } from "react-redux";
 import initStore from "./../redux/store";
 import withRedux from "next-redux-wrapper";
 
-const AppComponent = props => {
+const AppComponent = (props) => {
+  const { Component, pageProps } = props;
+  const dispatch = useDispatch();
 
-    const { Component, pageProps } = props;
-    const dispatch = useDispatch();
+  useEffect(() => {
+    // load user everytime we render
+    dispatch(loadUser());
+    dispatch(loadTickets());
+    dispatch(loadOrders());
+  }, [dispatch]);
 
-    useEffect(() => {
-        // load user everytime we render
-        dispatch(loadUser());
-    }, [dispatch]);
+  const { user, loading, auth, error, success, token } = useSelector(
+    (state) => state.userrr
+  );
 
-    const { user, loading, auth, error, success, token } = useSelector((state) => state.userrr);
-
-
-    return (
-        <Provider store={initStore}>
-            <Header loggedInUser={user} />
-            <Component {...pageProps} />
-
-        </Provider>
-    );
+  return (
+    <Provider store={initStore}>
+      <Header loggedInUser={user} />
+      <div className="container">
+        <Component loggedInUser={user} {...pageProps} />
+      </div>
+    </Provider>
+  );
 };
 
 AppComponent.getInitialProps = async ({ Component, ctx }) => {
-    const pageProps = Component.getInitialProps
-        ? await Component.getInitialProps(ctx)
-        : {};
+  const pageProps = Component.getInitialProps
+    ? await Component.getInitialProps(ctx)
+    : {};
 
-    return { pageProps };
+  // ctx.store.dispatch(loadTickets());
+  // ctx.store.dispatch(loadUser());
+  // ctx.store.dispatch(loadOrders());
+
+  return { pageProps };
 };
 
 const makeStore = () => initStore;
-
 
 // AppComponent.getInitialProps = async (appContext) => {
 //     const client = buildClient(appContext.ctx);

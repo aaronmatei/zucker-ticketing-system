@@ -1,15 +1,16 @@
 import express from "express";
 import { json } from "body-parser";
-import proxy from 'http-proxy-middleware';
+import proxy from "http-proxy-middleware";
 import "express-async-errors";
 require("dotenv").config();
 const logger = require("morgan");
 const cors = require("cors");
 import cookieSession from "cookie-session";
-import { currentUser } from "./middlewares/currentUser"
-
-import { errorHandler } from "./middlewares/error-handler";
-import { NotFoundError } from "./errors/not-found";
+import {
+    currentUser,
+    errorHandler,
+    NotFoundError,
+} from "@arzuckertickets/common";
 
 const app = express();
 const usersRoutes = require("./routes/users");
